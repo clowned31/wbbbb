@@ -13885,12 +13885,45 @@ mission_templates = [
       (58,mtef_visitor_source|mtef_team_1,0,aif_start_alarmed,1,[]),
       (59,mtef_visitor_source|mtef_team_1,0,aif_start_alarmed,1,[]),
       (60,mtef_visitor_source|mtef_team_1,0,aif_start_alarmed,1,[]),
-      (61,mtef_visitor_source|mtef_team_1,0,aif_start_alarmed,1,[]),
-      (62,mtef_visitor_source|mtef_team_1,0,aif_start_alarmed,1,[]),
-      (63,mtef_visitor_source|mtef_team_1,0,aif_start_alarmed,1,[]),
-     ], adimi_tool_all_gamemodes +
+  (
+    "multiplayer_battle", mtf_battle_mode, charge,
+    "Battle.",
     [
-      common_battle_init_banner,
+      (0, mtef_team_0|mtef_use_exact_number, 0, aif_start_alarmed, 12, []),
+      (1, mtef_team_1|mtef_use_exact_number, 0, aif_start_alarmed, 12, []),
+      (60, mtef_visitor_source|mtef_team_0, 0, aif_start_alarmed, 1, []),
+      (61, mtef_visitor_source|mtef_team_0, 0, aif_start_alarmed, 1, []),
+      (62, mtef_visitor_source|mtef_team_1, 0, aif_start_alarmed, 1, []),
+      (63, mtef_visitor_source|mtef_team_1, 0, aif_start_alarmed, 1, []),
+    ],
+    [  # triggers listesi başlıyor
+
+      ## ✅ Admin komutlarını dinle
+      (ti_on_player_chat, 0, 0, [], [
+          (store_trigger_param_1, ":player_no"),
+          (store_trigger_param_2, ":chat_type"),
+          (store_trigger_param_3, ":string_no"),
+
+          (eq, ":chat_type", multi_chat_type_local),  # veya team/server olarak değiştirilebilir
+          (call_script, "script_process_chat_command", ":player_no", ":string_no"),
+      ]),
+
+      ## ✅ Yasaklı silahları kaldır
+      (1, 0, 0, [], [
+          (call_script, "script_disallow_two_handed_weapons"),
+          (call_script, "script_disallow_polearm_weapons"),
+      ]),
+
+    ]  # triggers listesi bitiş
+  ),  # Burada "multiplayer_battle" görevi bitiyor
+
+  # + Başka görevler ve modüler yapılar eklenebilir
+  adimi_tool_all_gamemodes +  # Burada devam edebiliriz, farklı modlar ekleniyor
+  [
+  common_battle_init_banner,  # Başka görevler eklenebilir
+   
+  ]
+
 
       multiplayer_server_check_polls,
       

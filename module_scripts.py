@@ -56611,91 +56611,96 @@ scripts = [
 	#	(store_script_param, ":shooter_agent_no", 5),
 	]),
 
-	
-	
-	
-	
-]
-
 ("process_chat_command", [
     (store_script_param_1, ":player_no"),
     (store_script_param_2, ":string_no"),
-    
+
     (str_store_string, s1, ":string_no"),
     (str_clear, s2),
 
-    # Çift elli silahları kapat
-    (str_store_string, s2, "@/ciftelkapat"),
     (try_begin),
+        (player_is_admin, ":player_no"),
+
+        # Cift elli silahlari kapat
+        (str_store_string, s2, "@/ciftelkapat"),
         (str_is_equal, s1, s2),
         (assign, "$g_disable_two_handed", 1),
-        (multiplayer_send_string_to_player, ":player_no", 0, "@Çift elli silahlar KAPATILDI."),
-    
-    # Çift elli silahları aç
-    (else_try),
-        (str_store_string, s2, "@/ciftelac"),
-        (str_is_equal, s1, s2),
-        (assign, "$g_disable_two_handed", 0),
-        (multiplayer_send_string_to_player, ":player_no", 0, "@Çift elli silahlar AÇILDI."),
-    
-    # Mızrakları kapat
-    (else_try),
-        (str_store_string, s2, "@/mızrakkapat"),
-        (str_is_equal, s1, s2),
-        (assign, "$g_disable_polearms", 1),
-        (multiplayer_send_string_to_player, ":player_no", 0, "@Mızraklar KAPATILDI."),
-    
-    # Mızrakları aç
-    (else_try),
-        (str_store_string, s2, "@/mızrakac"),
-        (str_is_equal, s1, s2),
-        (assign, "$g_disable_polearms", 0),
-        (multiplayer_send_string_to_player, ":player_no", 0, "@Mızraklar AÇILDI."),
+        (multiplayer_send_string_to_player, ":player_no", 0, "@Cift elli silahlar KAPATILDI."),
 
-    # Silah durumu sorgula
+        # Cift elli silahlari aç
+        (else_try),
+            (str_store_string, s2, "@/ciftelac"),
+            (str_is_equal, s1, s2),
+            (assign, "$g_disable_two_handed", 0),
+            (multiplayer_send_string_to_player, ":player_no", 0, "@Cift elli silahlar AÇILDI."),
+
+        # Mizraklari kapat
+        (else_try),
+            (str_store_string, s2, "@/mizrakkapat"),
+            (str_is_equal, s1, s2),
+            (assign, "$g_disable_polearms", 1),
+            (multiplayer_send_string_to_player, ":player_no", 0, "@Mizraklar KAPATILDI."),
+
+        # Mizraklari aç
+        (else_try),
+            (str_store_string, s2, "@/mizrakac"),
+            (str_is_equal, s1, s2),
+            (assign, "$g_disable_polearms", 0),
+            (multiplayer_send_string_to_player, ":player_no", 0, "@Mizraklar AÇILDI."),
+
+        # Silah durumu
+        (else_try),
+            (str_store_string, s2, "@/silahdurumu"),
+            (str_is_equal, s1, s2),
+            (str_clear, s3),
+            (try_begin),
+                (eq, "$g_disable_two_handed", 1),
+                (str_store_string, s3, "@Cift elli silahlar: KAPALI^"),
+            (else_try),
+                (str_store_string, s3, "@Cift elli silahlar: AÇIK^"),
+            (try_end),
+            (try_begin),
+                (eq, "$g_disable_polearms", 1),
+                (str_store_string, s2, "@Mizraklar: KAPALI"),
+            (else_try),
+                (str_store_string, s2, "@Mizraklar: AÇIK"),
+            (try_end),
+            (str_store_string, s3, "@{s3}{s2}"),
+            (multiplayer_send_string_to_player, ":player_no", 0, s3),
+        (try_end),
+
     (else_try),
-        (str_store_string, s2, "@/silahdurumu"),
-        (str_is_equal, s1, s2),
-        (str_clear, s3),
-        (try_begin),
-            (eq, "$g_disable_two_handed", 1),
-            (str_store_string, s3, "@Çift elli silahlar: KAPALI^"),
-        (else_try),
-            (str_store_string, s3, "@Çift elli silahlar: AÇIK^"),
-        (try_end),
-        (try_begin),
-            (eq, "$g_disable_polearms", 1),
-            (str_store_string, s2, "@Mızraklar: KAPALI"),
-        (else_try),
-            (str_store_string, s2, "@Mızraklar: AÇIK"),
-        (try_end),
-        (str_store_string, s3, "@{s3}{s2}"),
-        (multiplayer_send_string_to_player, ":player_no", 0, s3),
+        # Admin olmayan oyuncuya hata mesaji
+        (multiplayer_send_string_to_player, ":player_no", 0, "@Bu komutu sadece adminler kullanabilir."),
     (try_end),
 ]),
 
 ("disallow_two_handed_weapons", [
-    (eq, "$g_disable_two_handed", 1),
+    (eq, "$g_disable_two_handed", 1),  # Iki elli silahlar devre disi birakilmis mi?
     (try_for_agents, ":agent"),
-        (agent_is_human, ":agent"),
-        (agent_get_wielded_item, ":item", ":agent", 0),
-        (gt, ":item", -1),
-        (item_get_type, ":type", ":item"),
-        (eq, ":type", itp_type_two_handed_wpn),
-        (agent_unequip_item, ":agent", ":item"),
-        (agent_set_wielded_item, ":agent", -1),
+        (agent_is_human, ":agent"),  # Oyuncu mu?
+        (agent_is_alive, ":agent"),  # Hayatta mi?
+        (agent_get_wielded_item, ":item", ":agent", 0),  # Ekipman al
+        (gt, ":item", -1),  # Ekipman var mi?
+        (item_get_type, ":type", ":item"),  # Ekipman tipi
+        (eq, ":type", itp_type_two_handed_wpn),  # Iki elli silah mi?
+        (agent_unequip_item, ":agent", ":item"),  # Silahi sok
+        (agent_set_wielded_item, ":agent", -1),  # Silahi yok say
     (try_end),
 ]),
 
 ("disallow_polearm_weapons", [
-    (eq, "$g_disable_polearms", 1),
+    (eq, "$g_disable_polearms", 1),  # Mizraklar devre disi birakilmis mi?
     (try_for_agents, ":agent"),
-        (agent_is_human, ":agent"),
-        (agent_get_wielded_item, ":item", ":agent", 0),
-        (gt, ":item", -1),
-        (item_get_type, ":type", ":item"),
-        (eq, ":type", itp_type_polearm),
-        (agent_unequip_item, ":agent", ":item"),
-        (agent_set_wielded_item, ":agent", -1),
+        (agent_is_human, ":agent"),  # Oyuncu mu?
+        (agent_is_alive, ":agent"),  # Hayatta mi?
+        (agent_get_wielded_item, ":item", ":agent", 0),  # Ekipman al
+        (gt, ":item", -1),  # Ekipman var mi?
+        (item_get_type, ":type", ":item"),  # Ekipman tipi
+        (eq, ":type", itp_type_polearm),  # Mizrak mi?
+        (agent_unequip_item, ":agent", ":item"),  # Silahi sok
+        (agent_set_wielded_item, ":agent", -1),  # Silahi yok say
     (try_end),
 ]),
+
+]
